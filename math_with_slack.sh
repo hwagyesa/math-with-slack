@@ -150,7 +150,61 @@ document.addEventListener('DOMContentLoaded', function() {
         skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
       },
       TeX: {
-        extensions: ['AMSmath.js', 'AMSsymbols.js', 'noErrors.js', 'noUndefined.js']
+        extensions: ['AMSmath.js', 'AMSsymbols.js', 'color.js',
+          'AMScd.js', 'noErrors.js', 'noUndefined.js'],
+        Macros: {
+          bb: "\\\\\\\\mathbb",
+          mb: "\\\\\\\\boldsymbol",
+          mc: "\\\\\\\\mathcal",
+          mf: "\\\\\\\\mathfrak",
+          wh: "\\\\\\\\widehat",
+          wt: "\\\\\\\\widetilde",
+          ol: "\\\\\\\\overline",
+          v: "\\\\\\\\mathbf",
+          c: "\\\\\\\\mathcal",
+          tp: "\^{\\\\\\\\mkern+2mu T}",
+          inv: "\^{-1}",
+          eps: "\\\\\\\\epsilon",
+          veps: "\\\\\\\\varepsilon",
+          vphi: "\\\\\\\\varphi}",
+          One: "\\\\\\\\mathbf 1}",
+          Zero: "\\\\\\\\mathbf 0",
+          indicator: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
+          Ind: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
+          rank: "\\\\\\\\operatorname{rank}",
+          tr: "\\\\\\\\operatorname{tr}",
+          supp: "\\\\\\\\operatorname{supp}",
+          conv: "\\\\\\\\operatorname{conv}",
+          Bd: "\\\\\\\\operatorname{bd}",
+          Cl: "\\\\\\\\operatorname{cl}",
+          Dom: "\\\\\\\\operatorname{dom}",
+          Epi: "\\\\\\\\operatorname{epi}",
+          Aff: "\\\\\\\\operatorname{aff}",
+          Cone: "\\\\\\\\operatorname{cone}",
+          Int: "\\\\\\\\operatorname{int}",
+          Relint: "\\\\\\\\operatorname{relint}",
+          Span: "\\\\\\\\operatorname{span}",
+          Diam: "\\\\\\\\operatorname{diam}",
+          dist: "\\\\\\\\operatorname{dist}",
+          vect: "\\\\\\\\operatorname{vec}",
+          vol: "\\\\\\\\operatorname{vol}",
+          E: "\\\\\\\\operatorname{\\\\\\\\mathbb E}",
+          P: "\\\\\\\\operatorname{\\\\\\\\mathbb P}",
+          var: "\\\\\\\\operatorname{var}",
+          cov: "\\\\\\\\operatorname{cov}",
+          diag: "\\\\\\\\operatorname{diag}",
+          sign: "\\\\\\\\operatorname{sign}",
+          grad: "\\\\\\\\operatorname{grad}",
+          Hess: "\\\\\\\\operatorname{Hess}",
+          mini: "\\\\\\\\operatorname{minimize}",
+          maxi: "\\\\\\\\operatorname{maximize}",
+          st: "\\\\\\\\operatorname{subject\\\\\\\\; to}",
+          im: "\\\\\\\\mathrm i",
+          norm: ["\\\\\\\\left\\\\\\\\lVert #1 \\\\\\\\right\\\\\\\\rVert",1],
+          abs: ["\\\\\\\\left\\\\\\\\lvert #1 \\\\\\\\right\\\\\\\\rvert", 1],
+          ceil: ["\\\\\\\\left\\\\\\\\lceil #1 \\\\\\\\right\\\\\\\\rceil",1],
+          floor: ["\\\\\\\\left\\\\\\\\lfloor #1 \\\\\\\\right\\\\\\\\rfloor",1]
+        }
       }
     });
   \`;
@@ -167,6 +221,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 EOF
 
+# leftover macros:
+#Pr: "{\\let\\Pr\\relax \\operatorname{\\mathbb P}}",
+#tp: "{\^{\\mkern+2mu T}}",
+#inv: "{\^{-1}}",
 
 ## Inject code loader
 
