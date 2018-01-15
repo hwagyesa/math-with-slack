@@ -106,9 +106,9 @@ restore_file() {
   # Check if file exists
   # If it doesn't just silently return, to cope with nonexistent
   # files in different slack-desktop versions.
-  if [ ! -e $1 ]; then
-    return 0
-  fi
+  #if [ ! -e $1 ]; then
+    #return 0
+  #fi
 
 	# Test so file been injected. If not, assume it's more recent than backup
 	if grep -q "math-with-slack" $1; then
@@ -247,9 +247,9 @@ inject_loader() {
 	# Check if file exists
  	# If it doesn't just silently return, to cope with nonexistent
  	# files in different slack-desktop versions.
- 	if [ ! -e $1 ]; then
- 		return 0
- 	fi
+ 	#if [ ! -e $1 ]; then
+ 		#return 0
+ 	#fi
 
 	# Check so not already injected
 	if grep -q "math-with-slack" $1; then
