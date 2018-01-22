@@ -11,14 +11,14 @@
 ::
 :: https://github.com/fsavje/math-with-slack
 ::
-:: MIT License, Copyright 2017 Fredrik Savje
+:: MIT License, Copyright 2018 Fredrik Savje
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
 :: Constants
 
-SET "MWS_VERSION=v0.2.2"
+SET "MWS_VERSION=v0.2.3"
 
 
 :: User input
@@ -78,9 +78,6 @@ IF EXIST "%SLACK_DIR%\math-with-slack.js" (
 :: Restore previous injections
 
 CALL :restore_file "%SLACK_DIR%\ssb-interop.js"
-IF %ERRORLEVEL% NEQ 0 ( PAUSE & EXIT /B 1 )
-
-CALL :restore_file "%SLACK_DIR%\ssb-interop-lite.js"
 IF %ERRORLEVEL% NEQ 0 ( PAUSE & EXIT /B 1 )
 
 
@@ -202,9 +199,6 @@ IF "%UNINSTALL%" == "-u" (
 :: Inject code loader
 
 CALL :inject_loader "%SLACK_DIR%\ssb-interop.js"
-IF %ERRORLEVEL% NEQ 0 ( PAUSE & EXIT /B 1 )
-
-CALL :inject_loader "%SLACK_DIR%\ssb-interop-lite.js"
 IF %ERRORLEVEL% NEQ 0 ( PAUSE & EXIT /B 1 )
 
 

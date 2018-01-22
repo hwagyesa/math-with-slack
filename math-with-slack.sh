@@ -11,14 +11,14 @@
 #
 # https://github.com/fsavje/math-with-slack
 #
-# MIT License, Copyright 2017 Fredrik Savje
+# MIT License, Copyright 2018 Fredrik Savje
 #
 ################################################################################
 
 
 ## Constants
 
-MWS_VERSION="v0.2.2"
+MWS_VERSION="v0.2.3"
 
 
 ## Functions
@@ -114,7 +114,6 @@ restore_file() {
 }
 
 restore_file $SLACK_DIR/ssb-interop.js
-restore_file $SLACK_DIR/ssb-interop-lite.js
 
 
 ## Are we uninstalling?
@@ -268,7 +267,6 @@ inject_loader() {
 }
 
 inject_loader $SLACK_DIR/ssb-interop.js
-inject_loader $SLACK_DIR/ssb-interop-lite.js
 
 
 ## We're done
