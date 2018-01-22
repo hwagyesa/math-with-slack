@@ -151,6 +151,12 @@ document.addEventListener('DOMContentLoaded', function() {
         extensions: ['AMSmath.js', 'AMSsymbols.js', 'color.js',
           'AMScd.js', 'noErrors.js', 'noUndefined.js'],
         Macros: {
+          N: "\\\\\\\\mathbb{N}",
+          Z: "\\\\\\\\mathbb{Z}",
+          Q: "\\\\\\\\mathbb{Q}",
+          R: "\\\\\\\\mathbb{R}",
+          C: "\\\\\\\\mathbb{C}",
+          var: "\\\\\\\\operatorname{Var}",
           bb: "\\\\\\\\mathbb",
           mb: "\\\\\\\\boldsymbol",
           mc: "\\\\\\\\mathcal",
@@ -216,11 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
   \`;
   var mathjax_script = document.createElement('script');
   mathjax_script.type = 'text/javascript';
-  mathjax_script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js';
+  mathjax_script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js';
   document.head.appendChild(mathjax_config);
   document.head.appendChild(mathjax_script);
 
-  var target = document.querySelector('#msgs_div');
+  var target = document.querySelector('#messages_container');
   var options = { attributes: false, childList: true, characterData: true, subtree: true };
   var observer = new MutationObserver(function (r, o) { MathJax.Hub.Queue(['Typeset', MathJax.Hub]); });
   observer.observe(target, options);
