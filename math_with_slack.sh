@@ -97,9 +97,9 @@ restore_file() {
   # Check if file exists
   # If it doesn't just silently return, to cope with nonexistent
   # files in different slack-desktop versions.
-  #if [ ! -e $1 ]; then
-    #return 0
-  #fi
+  if [ ! -e $1 ]; then
+    return 0
+  fi
 
 	# Test so file been injected. If not, assume it's more recent than backup
 	if grep -q "math-with-slack" $1; then
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
           Q: "\\\\\\\\mathbb{Q}",
           R: "\\\\\\\\mathbb{R}",
           C: "\\\\\\\\mathbb{C}",
-          var: "\\\\\\\\operatorname{Var}",
+          Var: "\\\\\\\\operatorname{Var}",
           bb: "\\\\\\\\mathbb",
           mb: "\\\\\\\\boldsymbol",
           mc: "\\\\\\\\mathcal",
@@ -170,8 +170,8 @@ document.addEventListener('DOMContentLoaded', function() {
           inv: "\^{-1}",
           eps: "\\\\\\\\epsilon",
           veps: "\\\\\\\\varepsilon",
-          vphi: "\\\\\\\\varphi}",
-          One: "\\\\\\\\mathbf 1}",
+          vphi: "\\\\\\\\varphi",
+          One: "\\\\\\\\mathbf 1",
           Zero: "\\\\\\\\mathbf 0",
           indicator: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
           ind: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
@@ -244,9 +244,9 @@ inject_loader() {
 	# Check if file exists
  	# If it doesn't just silently return, to cope with nonexistent
  	# files in different slack-desktop versions.
- 	#if [ ! -e $1 ]; then
- 		#return 0
- 	#fi
+ 	if [ ! -e $1 ]; then
+ 		return 0
+ 	fi
 
 	# Check so not already injected
 	if grep -q "math-with-slack" $1; then
