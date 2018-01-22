@@ -117,6 +117,11 @@ IF "%UNINSTALL%" == "-u" (
 	ECHO.      TeX: {
 	ECHO.        extensions: ['AMSmath.js', 'AMSsymbols.js', 'noErrors.js', 'noUndefined.js'],
   ECHO.        Macros: {
+  ECHO.          N: "\\\\\\\\mathbb{N}",
+  ECHO.          Z: "\\\\\\\\mathbb{Z}",
+  ECHO.          Q: "\\\\\\\\mathbb{Q}",
+  ECHO.          R: "\\\\\\\\mathbb{R}",
+  ECHO.          C: "\\\\\\\\mathbb{C}",
   ECHO.          bb: "\\\\\\\\mathbb",
   ECHO.          mb: "\\\\\\\\boldsymbol",
   ECHO.          mc: "\\\\\\\\mathcal",
@@ -130,8 +135,8 @@ IF "%UNINSTALL%" == "-u" (
   ECHO.          inv: "\^{-1}",
   ECHO.          eps: "\\\\\\\\epsilon",
   ECHO.          veps: "\\\\\\\\varepsilon",
-  ECHO.          vphi: "\\\\\\\\varphi}",
-  ECHO.          One: "\\\\\\\\mathbf 1}",
+  ECHO.          vphi: "\\\\\\\\varphi",
+  ECHO.          One: "\\\\\\\\mathbf 1",
   ECHO.          Zero: "\\\\\\\\mathbf 0",
   ECHO.          indicator: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
   ECHO.          ind: ["\\\\\\\\operatorname{\\\\\\\\mathbb 1}_{#1}",1],
@@ -182,11 +187,11 @@ IF "%UNINSTALL%" == "-u" (
 	ECHO.  `;
 	ECHO.  var mathjax_script = document.createElement('script'^);
 	ECHO.  mathjax_script.type = 'text/javascript';
-	ECHO.  mathjax_script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js';
+	ECHO.  mathjax_script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js';
 	ECHO.  document.head.appendChild(mathjax_config^);
 	ECHO.  document.head.appendChild(mathjax_script^);
 	ECHO.
-	ECHO.  var target = document.querySelector('#msgs_div'^);
+	ECHO.  var target = document.querySelector('#messages_container'^);
 	ECHO.  var options = { attributes: false, childList: true, characterData: true, subtree: true };
 	ECHO.  var observer = new MutationObserver(function (r, o^) { MathJax.Hub.Queue(['Typeset', MathJax.Hub]^); }^);
 	ECHO.  observer.observe(target, options^);
