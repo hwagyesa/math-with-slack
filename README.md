@@ -9,4 +9,6 @@ for a much more detailed introduction to `math-with-slack` as
 well as credits for contributions.
 
 Thanks to [LaurentHayez](https://github.com/LaurentHayez) for
-submitting a bug fix.
+submitting a bug fix. Thanks to [A.
+Davidson](https://github.com/aday651) for submitting a working
+Windows install script.
