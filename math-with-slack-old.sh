@@ -18,32 +18,106 @@
 
 ## Constants
 
-## Main
+MWS_VERSION="v0.2.5"
 
-SLACK_DIRECT_LOCAL_SETTINGS="~/Library/Application\ Support/Slack/local-settings.json"
-SLACK_STORE_LOCAL_SETTINGS="~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application\ Support/Slack/local-settings.json"
-OSX_SLACK_RESOURCES_DIR="/Applications/Slack.app/Contents/Resources"
-LINUX_SLACK_RESOURCES_DIR="/usr/lib/slack/resources"
-UPDATE_ONLY="false"
 
-echo && echo "This script requires sudo privileges." && echo "You'll need to provide your password."
+## Functions
 
-type npx
-if [[ "$?" != "0" ]]; then echo "Please install Node for your OS.  macOS users will also need to install Homebrew from https://brew.sh"; fi
-if [[ -f $SLACK_DIRECT_LOCAL_SETTINGS ]]; then sed -i 's/"bootSonic":"once"/"bootSonic":"never"/g' $SLACK_DIRECT_LOCAL_SETTINGS; fi
-if [[ -f $SLACK_STORE_LOCAL_SETTINGS ]]; then sudo sed -i 's/"bootSonic":"once"/"bootSonic":"never"/g' $SLACK_STORE_LOCAL_SETTINGS; fi
+error() {
+	echo "$(tput setaf 124)$(tput bold)✘ $1$(tput sgr0)"
+	exit 1
+}
 
-if [[ -d $OSX_SLACK_RESOURCES_DIR ]]; then SLACK_RESOURCES_DIR=$OSX_SLACK_RESOURCES_DIR; fi
-if [[ -d $LINUX_SLACK_RESOURCES_DIR ]]; then SLACK_RESOURCES_DIR=$LINUX_SLACK_RESOURCES_DIR; fi
-if [[ "$1" == "-u" ]]; then UPDATE_ONLY="true"; fi
 
-SLACK_SSB_INTEROP="$SLACK_RESOURCES_DIR/app.asar.unpacked/dist/ssb-interop.bundle.js"
-SLACK_MATHJAX_SCRIPT="$SLACK_RESOURCES_DIR/math-with-slack.js"
+## User input
 
-if [[ "$UPDATE_ONLY" == "true" ]]; then echo && echo "Updating Dark Theme Code for Slack... "; fi
-if [[ "$UPDATE_ONLY" == "false" ]]; then echo && echo "Adding Dark Theme Code to Slack... "; fi
+for p in "$@"; do
+	if [ "$p" = "-u" ]; then
+		UNINSTALL="$p"
+	else
+		SLACK_DIR="$p"
+	fi
+done
 
-echo "This script requires sudo privileges." && echo "You'll need to provide your password."
+
+## Platform settings
+
+if [ "$(uname)" == "Darwin" ]; then
+	# macOS
+	COMMON_SLACK_LOCATIONS=(
+		"/Applications/Slack.app/Contents/Resources/app.asar.unpacked/src/static"
+	)
+else
+	# Linux
+	COMMON_SLACK_LOCATIONS=(
+		"/usr/lib/slack/resources/app.asar.unpacked/src/static"
+		"/usr/local/lib/slack/resources/app.asar.unpacked/src/static"
+		"/opt/slack/resources/app.asar.unpacked/src/static"
+	)
+fi
+
+
+## Try to find slack if not provided by user
+
+if [ -z "$SLACK_DIR" ]; then
+	for loc in "${COMMON_SLACK_LOCATIONS[@]}"; do
+		if [ -e "$loc" ]; then
+			SLACK_DIR="$loc"
+			break
+		fi
+	done
+fi
+
+
+## Files
+
+SLACK_MATHJAX_SCRIPT="$SLACK_DIR/math-with-slack.js"
+SLACK_SSB_INTEROP="$SLACK_DIR/ssb-interop.js"
+
+
+## Check so installation exists and is writable
+
+if [ -z "$SLACK_DIR" ]; then
+	error "Cannot find Slack installation."
+elif [ ! -e "$SLACK_DIR" ]; then
+	error "Cannot find Slack installation at: $SLACK_DIR"
+elif [ ! -e "$SLACK_SSB_INTEROP" ]; then
+	error "Cannot find Slack file: $SLACK_SSB_INTEROP"
+elif [ ! -w "$SLACK_SSB_INTEROP" ]; then
+	error "Cannot write to Slack file: $SLACK_SSB_INTEROP"
+fi
+
+echo "Using Slack installation at: $SLACK_DIR"
+
+
+## Remove previous version
+
+if [ -e "$SLACK_MATHJAX_SCRIPT" ]; then
+	rm $SLACK_MATHJAX_SCRIPT
+fi
+
+
+## Restore previous injections
+
+# Check whether file been injected. If not, assume it's more recent than backup
+if grep -q "math-with-slack" $SLACK_SSB_INTEROP; then
+  if [ -e "$SLACK_SSB_INTEROP.mwsbak" ]; then
+    mv -f $SLACK_SSB_INTEROP.mwsbak $SLACK_SSB_INTEROP
+  else
+    error "Cannot restore from backup. Missing file: $SLACK_SSB_INTEROP.mwsbak"
+  fi
+elif [ -e "$SLACK_SSB_INTEROP.mwsbak" ]; then
+  rm $SLACK_SSB_INTEROP.mwsbak
+fi
+
+
+## Are we uninstalling?
+
+if [ -n "$UNINSTALL" ]; then
+	echo "$(tput setaf 64)math-with-slack has been uninstalled. Please restart the Slack client.$(tput sgr0)"
+	exit 0
+fi
+
 
 ## Write main script
 
@@ -75,15 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
           Z: "\\\\\\\\mathbb{Z}",
           Q: "\\\\\\\\mathbb{Q}",
           R: "\\\\\\\\mathbb{R}",
-          reals: "\\\\\\\\mathbb{R}",
           C: "\\\\\\\\mathbb{C}",
           Var: "\\\\\\\\operatorname{Var}",
           bb: "\\\\\\\\mathbb",
           mb: "\\\\\\\\boldsymbol",
           mc: "\\\\\\\\mathcal",
           mf: "\\\\\\\\mathfrak",
-          mr: "\\\\\\\\mathrm",
-          rm: "\\\\\\\\mathrm",
           wh: "\\\\\\\\widehat",
           wt: "\\\\\\\\widetilde",
           ol: "\\\\\\\\overline",
@@ -163,15 +234,39 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 EOF
 
-if [[ "$UPDATE_ONLY" == "false" ]]; then
-  # Unpack Asar Archive for Slack
-  sudo npx asar extract $SLACK_RESOURCES_DIR/app.asar $SLACK_RESOURCES_DIR/app.asar.unpacked
+# leftover macros:
+#Pr: "{\\let\\Pr\\relax \\operatorname{\\mathbb P}}",
+#tp: "{\^{\\mkern+2mu T}}",
+#inv: "{\^{-1}}",
 
-  # Add JS Code to Slack
-  sudo tee -a "$SLACK_SSB_INTEROP" < $SLACK_MATHJAX_SCRIPT
+## Inject code loader
 
-  # Pack the Asar Archive for Slack
-  sudo npx asar pack $SLACK_RESOURCES_DIR/app.asar.unpacked $SLACK_RESOURCES_DIR/app.asar
+# Check so not already injected
+if grep -q "math-with-slack" $SLACK_SSB_INTEROP; then
+  error "File already injected: $SLACK_SSB_INTEROP"
 fi
 
-echo && echo "Done! After executing this script restart Slack for changes to take effect."
+# Make backup
+if [ ! -e "$SLACK_SSB_INTEROP.mwsbak" ]; then
+  cp $SLACK_SSB_INTEROP $SLACK_SSB_INTEROP.mwsbak
+else
+  error "Backup already exists: $SLACK_SSB_INTEROP.mwsbak"
+fi
+
+# Inject loader code
+ed -s $SLACK_SSB_INTEROP <<EOF > /dev/null
+/init(resourcePath, mainModule, !isDevMode);
+i
+  // ** math-with-slack $MWS_VERSION ** https://github.com/fsavje/math-with-slack
+  var mwsp = path.join(__dirname, 'math-with-slack.js').replace('app.asar', 'app.asar.unpacked');
+  require('fs').readFile(mwsp, 'utf8', (e, r) => { if (e) { throw e; } else { eval(r); } });
+
+.
+w
+q
+EOF
+
+
+## We're done
+
+echo "$(tput setaf 64)math-with-slack has been installed. Please restart the Slack client.$(tput sgr0)"
