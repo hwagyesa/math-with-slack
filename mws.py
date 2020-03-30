@@ -28,6 +28,7 @@ import os
 import shutil
 import struct
 import sys
+from distutils.version import LooseVersion
 
 try:
     # Python 3
@@ -51,7 +52,7 @@ parser = argparse.ArgumentParser(prog='math-with-slack', description='Inject Sla
 parser.add_argument('-a', '--app-file', help='Path to Slack\'s \'app.asar\' file.')
 parser.add_argument('--mathjax-url', 
                     help='Url to download mathjax release.', 
-                    default='https://registry.npmjs.org/mathjax/-/mathjax-3.0.0.tgz')
+                    default='https://registry.npmjs.org/mathjax/-/mathjax-3.0.1.tgz')
 parser.add_argument('-u', '--uninstall', action='store_true', help='Removes injected MathJax code.')
 parser.add_argument('--version', action='version', version='%(prog)s ' + mws_version)
 args = parser.parse_args()
@@ -70,7 +71,7 @@ if args.app_file is not None:
     app_path = args.app_file
 elif sys.platform == 'darwin':
     app_path = '/Applications/Slack.app/Contents/Resources/app.asar'
-elif sys.platform == 'linux':
+elif sys.platform.startswith('linux'):
     for test_app_file in [
         '/usr/lib/slack/resources/app.asar',
         '/usr/local/lib/slack/resources/app.asar',
@@ -109,12 +110,14 @@ with open(app_path, mode='rb') as check_app_fp:
 assert json_binary_size == json_data_size + 4
 json_check = json.loads(json_binary[8:(json_string_size + 8)].decode('utf-8'))
 
+app_backup_path = app_path + '.mwsbak'
+
 if 'MWSINJECT' in json_check['files']:
-    if not os.path.isfile(app_path + '.mwsbak'):
+    if not os.path.isfile(app_backup_path):
         exprint('Found injected code without backup. Please re-install Slack.')
     try:
         os.remove(app_path)
-        shutil.move(app_path + '.mwsbak', app_path)
+        shutil.move(app_backup_path, app_path)
     except Exception as e:
         print(e)
         exprint('Cannot remove previously injected code. Make sure the script has write permissions.')
@@ -122,9 +125,9 @@ if 'MWSINJECT' in json_check['files']:
 
 # Remove old backup if it exists
 
-if os.path.isfile(app_path + '.mwsbak'):
+if os.path.isfile(app_backup_path):
     try:
-        os.remove(app_path + '.mwsbak')
+        os.remove(app_backup_path)
     except Exception as e:
         print(e)
         exprint('Cannot remove old backup. Make sure the script has write permissions.')
@@ -149,13 +152,32 @@ document.addEventListener('DOMContentLoaded', function() {
   function typeset(element) {
     const MathJax = window.MathJax;
     MathJax.startup.promise = MathJax.startup.promise
-      .then(() => {return MathJax.typesetPromise(element);})
+      .then(() => {console.log(element); return MathJax.typesetPromise(element);})
       .catch((err) => console.log('Typeset failed: ' + err.message));
     return MathJax.startup.promise;
   }
 
   window.MathJax = {
-    loader: {load: ['[tex]/ams', '[tex]/color', '[tex]/noerrors', '[tex]/noundefined', '[tex]/boldsymbol']},
+    options: {
+        skipHtmlTags: [
+            'script', 'noscript', 'style', 'textarea', 'pre',
+            'code', 'annotation', 'annotation-xml'
+        ],
+    },
+    loader: {
+        paths: {mathjax: 'mathjax/es5'},
+        source: {},
+        require: require,
+        load: [
+            'input/tex-full',
+            'output/svg',
+            '[tex]/ams',
+            '[tex]/color',
+            '[tex]/noerrors',
+            '[tex]/noundefined',
+            '[tex]/boldsymbol'
+        ]
+    },
     tex: {
       packages: {'[+]': ['ams', 'color', 'noerrors', 'noundefined', 'boldsymbol']},
       inlineMath: [['$', '$']],
@@ -170,24 +192,27 @@ document.addEventListener('DOMContentLoaded', function() {
         Var: "\\\\operatorname{Var}",
         bb: "\\\\mathbb",
         mb: "\\\\boldsymbol",
+        bm: "\\\\boldsymbol",
         mc: "\\\\mathcal",
         mf: "\\\\mathfrak",
-        mr: "\\\\mathrm",
-        rm: "\\\\mathrm",
+        mr: "\\\\text",
+        rm: "\\\\text",
         wh: "\\\\widehat",
         wt: "\\\\widetilde",
         ol: "\\\\overline",
         v: "\\\\mathbf",
         c: "\\\\mathcal",
         tp: "^{\\\\mkern+2mu T}",
+        tp: "^{\\\\mkern+2mu *}",
         inv: "^{-1}",
         eps: "\\\\epsilon",
         veps: "\\\\varepsilon",
         vphi: "\\\\varphi",
         One: "\\\\mathbf 1",
         Zero: "\\\\mathbf 0",
-        indicator: ["\\\\operatorname{\\\\mathbb 1}_{#1}",1],
-        ind: ["\\\\operatorname{\\\\mathbb 1}_{#1}",1],
+        indicator: ["\\\\mathbb{1}_{#1}",1],
+        ind: ["\\\\mathbb{1}_{#1}",1],
+        Ind: ["\\\\mathbb{1}_{#1}",1],
         rank: "\\\\operatorname{rank}",
         tr: "\\\\operatorname{tr}",
         supp: "\\\\operatorname{supp}",
@@ -205,8 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
         dist: "\\\\operatorname{dist}",
         vect: "\\\\operatorname{vec}",
         vol: "\\\\operatorname{vol}",
-        E: "\\\\operatorname{\\\\mathbb E}",
-        P: "\\\\operatorname{\\\\mathbb P}",
+        E: ["\\\\mathbb{E} \\\\left[ #1 \\\\right]",1],
+        P: ["\\\\mathbb{P} \\\\left[ #1 \\\\right]",1],
+        Pr: ["\\\\mathbb{P} \\\\left[ #1 \\\\right]",1],
         var: "\\\\operatorname{var}",
         cov: "\\\\operatorname{cov}",
         diag: "\\\\operatorname{diag}",
@@ -222,15 +248,13 @@ document.addEventListener('DOMContentLoaded', function() {
         abs: ["\\\\left\\\\lvert #1 \\\\right\\\\rvert", 1],
         innerprod: ["\\\\left\\\\langle #1, #2\\\\right\\\\rangle", 2],
         ip: ["\\\\left\\\\langle #1, #2\\\\right\\\\rangle", 2],
-        prob: ["\\\\operatorname{\\\\mathbb{P}}\\\\left[ #1 \\\\right]",1],
-        expect: ["\\\\operatorname{\\\\mathbb{E}}\\\\left[ #1 \\\\right]",1],
+        prob: ["\\\\mathbb{P}\\\\left[ #1 \\\\right]",1],
+        expect: ["\\\\mathbb{E}\\\\left[ #1 \\\\right]",1],
         set: ["\\\\left\\\\{ #1 \\\\right\\\\}", 1],
         condset: ["\\\\left\\\\{ #1 \\\\;\\\\middle|\\\\; #2 \\\\right\\\\}", 2],
         ceil: ["\\\\left\\\\lceil #1 \\\\right\\\\rceil",1],
         floor: ["\\\\left\\\\lfloor #1 \\\\right\\\\rfloor",1]
       },
-      // the following doesn't seem to work with MathJax 3
-      // skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
     },
     startup: {
       ready: () => {
@@ -239,8 +263,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var entry_observer = new IntersectionObserver(
           (entries, observer) => {
             var appearedEntries = entries.filter((entry) => entry.intersectionRatio > 0);
-            console.log(appearedEntries);
-            typeset(appearedEntries.map((entry) => entry.target));
+            if(appearedEntries.length) {
+                console.log(appearedEntries);
+                typeset(appearedEntries.map((entry) => entry.target));
+            }
           }, 
           { root: document.body }
         );
@@ -263,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // Import mathjax
-  require("mathjax/es5/tex-svg-full");
+  require("mathjax/es5/startup.js");
 
 });
 ''').encode('utf-8')
@@ -272,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
 # Make backup
 
 try:
-    shutil.move(app_path, app_path + '.mwsbak')
+    shutil.copy(app_path, app_backup_path)
 except Exception as e:
     print(e)
     exprint('Cannot make backup. Make sure the script has write permissions.')
@@ -280,7 +306,7 @@ except Exception as e:
 
 # Get file info
 
-with open(app_path + '.mwsbak', mode='rb') as ori_app_fp:
+with open(app_backup_path, mode='rb') as ori_app_fp:
     (header_data_size, json_binary_size) = struct.unpack('<II', ori_app_fp.read(8))
     assert header_data_size == 4
     json_binary = ori_app_fp.read(json_binary_size)
@@ -293,8 +319,31 @@ assert json_binary_size == json_data_size + 4
 json_header = json.loads(json_binary[8:(json_string_size + 8)].decode('utf-8'))
 assert 'MWSINJECT' not in json_header['files']
 
+def read_file_from_asar(file_offset, file_size):
+    with open(app_backup_path, mode='rb') as ori_app_fp:
+        ori_app_fp.seek(file_offset + ori_data_offset)
+        binary = ori_app_fp.read(file_size)
+        return binary
 
-injected_file_name = 'main-preload-entry-point.bundle.js'
+def read_package_json():
+    package_json_desp = json_header['files']['package.json']
+    binary = read_file_from_asar(int(package_json_desp['offset']), int(package_json_desp['size']))
+    return json.loads(binary)
+
+def read_slack_version():
+    package_json = read_package_json()
+    return LooseVersion(package_json['version'])
+
+slack_version = read_slack_version()
+
+if LooseVersion('4.3') <= slack_version < LooseVersion('4.4'):
+    injected_file_name = 'main-preload-entry-point.bundle.js'
+elif LooseVersion('4.4') <= slack_version:
+    injected_file_name = 'preload.bundle.js'
+else:
+    exprint("Unsupported Slack Version {}.".format(slack_version))
+
+
 ori_injected_file_size = json_header['files']['dist']['files'][injected_file_name]['size']
 ori_injected_file_offset = int(json_header['files']['dist']['files'][injected_file_name]['offset'])
 
@@ -368,7 +417,7 @@ json_header["files"]["node_modules"]["files"]["mathjax"] = mathjax_json_header["
 new_json_header = json.dumps(json_header, separators=(',', ':')).encode('utf-8')
 new_json_header_padding = (4 - len(new_json_header) % 4) % 4
 
-with open(app_path + '.mwsbak', mode='rb') as ori_app_fp, \
+with open(app_backup_path, mode='rb') as ori_app_fp, \
      open(app_path, mode='wb') as new_app_fp:
     # Header
     new_app_fp.write(struct.pack('<I', 4))
